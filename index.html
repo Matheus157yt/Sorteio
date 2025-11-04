@@ -111,24 +111,61 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let chosenNumbers = [];
+            // --- ALTERAÇÃO AQUI ---
+            // Função para buscar os números já escolhidos do localStorage
+            function getChosenNumbers() {
+                const numbers = localStorage.getItem('chosenRaffleNumbers');
+                return numbers ? JSON.parse(numbers) : [];
+            }
+
+            // Função para salvar um novo número escolhido no localStorage
+            function saveChosenNumber(number) {
+                const numbers = getChosenNumbers();
+                if (!numbers.includes(number)) {
+                    numbers.push(number);
+                    localStorage.setItem('chosenRaffleNumbers', JSON.stringify(numbers));
+                }
+            }
+            
+            // Carrega a lista de números já escolhidos ao iniciar
+            let chosenNumbers = getChosenNumbers();
 
             const raffleNumberSelect = document.getElementById('raffle-number');
-            // --- ALTERAÇÃO AQUI ---
             const totalNumbers = 20; // Define o total de números do sorteio
 
-            for (let i = 1; i <= totalNumbers; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i;
-                raffleNumberSelect.appendChild(option);
+            // Popula o seletor de números e desabilita os que já foram escolhidos
+            function populateNumbers() {
+                // Limpa opções antigas antes de adicionar novas
+                raffleNumberSelect.innerHTML = '<option value="">Selecione um número</option>';
+                
+                chosenNumbers = getChosenNumbers(); // Garante que a lista está atualizada
+
+                for (let i = 1; i <= totalNumbers; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    
+                    if (chosenNumbers.includes(i)) {
+                        option.disabled = true;
+                        option.textContent = `${i} (Indisponível)`;
+                    }
+                    
+                    raffleNumberSelect.appendChild(option);
+                }
             }
+            
+            // Chama a função para popular os números quando a página carregar
+            populateNumbers();
 
             const form = document.getElementById('raffle-form');
             const messageBox = document.getElementById('message-box');
 
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
+
+                // Re-sincroniza com o localStorage para garantir que ninguém escolheu o número
+                // enquanto o usuário preenchia o formulário.
+                chosenNumbers = getChosenNumbers();
 
                 const fullName = document.getElementById('full-name').value;
                 const phone = document.getElementById('phone').value;
@@ -140,16 +177,13 @@
                     messageBox.textContent = 'Ops! Alguém acabou de escolher esse número. Tente outro.';
                     messageBox.className = 'message error';
                     messageBox.style.display = 'block';
+                    // Atualiza a lista para mostrar o número como indisponível
+                    populateNumbers();
                     return;
                 }
-
-                chosenNumbers.push(selectedNumber);
-
-                const chosenOption = raffleNumberSelect.querySelector(`option[value="${selectedNumber}"]`);
-                if (chosenOption) {
-                    chosenOption.disabled = true;
-                    chosenOption.textContent = `${selectedNumber} (Indisponível)`;
-                }
+                
+                // Salva o número no localStorage
+                saveChosenNumber(selectedNumber);
 
                 messageBox.textContent = `Número ${selectedNumber} reservado com sucesso!`;
                 messageBox.className = 'message success';
@@ -160,8 +194,11 @@
                 const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
                 window.open(whatsappUrl, '_blank');
+                
+                // Limpa o formulário e atualiza a lista de números
                 form.reset();
                 raffleNumberSelect.value = "";
+                populateNumbers();
             });
         });
     </script>
