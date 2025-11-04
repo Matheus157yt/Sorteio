@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteio - 20 Números</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #2d2d2d;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 320px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #FFA500;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #f0f0f0;
+        }
+        input[type="text"],
+        input[type="tel"],
+        select {
+            width: 100%;
+            padding: 10px;
+            background-color: #444;
+            border: 1px solid #666;
+            border-radius: 4px;
+            box-sizing: border-box;
+            color: #ffffff;
+        }
+        select option {
+            background: #444;
+            color: #ffffff;
+        }
+        select option:disabled {
+            color: #888;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #FFA500;
+            color: #121212;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #E69500;
+        }
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+        }
+        .success {
+            color: #90EE90;
+        }
+        .error {
+            color: #FF6347;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Cadastro para o Sorteio</h2>
+        <form id="raffle-form">
+            <div class="form-group">
+                <label for="full-name">Nome Completo:</label>
+                <input type="text" id="full-name" name="full-name" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Número de Telefone:</label>
+                <input type="tel" id="phone" name="phone" placeholder="(XX) XXXXX-XXXX" required>
+            </div>
+            <div class="form-group">
+                <label for="raffle-number">Escolha seu Número:</label>
+                <select id="raffle-number" name="raffle-number" required>
+                    <option value="">Selecione um número</option>
+                </select>
+            </div>
+            <button type="submit">Cadastrar e Enviar via WhatsApp</button>
+            <p id="message-box" class="message"></p>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let chosenNumbers = [];
+
+            const raffleNumberSelect = document.getElementById('raffle-number');
+            // --- ALTERAÇÃO AQUI ---
+            const totalNumbers = 20; // Define o total de números do sorteio
+
+            for (let i = 1; i <= totalNumbers; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                raffleNumberSelect.appendChild(option);
+            }
+
+            const form = document.getElementById('raffle-form');
+            const messageBox = document.getElementById('message-box');
+
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const fullName = document.getElementById('full-name').value;
+                const phone = document.getElementById('phone').value;
+                const selectedNumber = parseInt(raffleNumberSelect.value, 10);
+
+                messageBox.style.display = 'none';
+                
+                if (chosenNumbers.includes(selectedNumber)) {
+                    messageBox.textContent = 'Ops! Alguém acabou de escolher esse número. Tente outro.';
+                    messageBox.className = 'message error';
+                    messageBox.style.display = 'block';
+                    return;
+                }
+
+                chosenNumbers.push(selectedNumber);
+
+                const chosenOption = raffleNumberSelect.querySelector(`option[value="${selectedNumber}"]`);
+                if (chosenOption) {
+                    chosenOption.disabled = true;
+                    chosenOption.textContent = `${selectedNumber} (Indisponível)`;
+                }
+
+                messageBox.textContent = `Número ${selectedNumber} reservado com sucesso!`;
+                messageBox.className = 'message success';
+                messageBox.style.display = 'block';
+
+                const whatsappNumber = "+556196312873";
+                const message = `Sorteio!\n\n*Nome:* ${fullName}\n*Telefone:* ${phone}\n*Número Escolhido:* ${selectedNumber}`;
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+                window.open(whatsappUrl, '_blank');
+                form.reset();
+                raffleNumberSelect.value = "";
+            });
+        });
+    </script>
+
+</body>
+</html>
